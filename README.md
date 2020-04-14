@@ -25,3 +25,5 @@ heroku git:remote -a turnip-bot
 Deploy to Heroku with:
 
 git push heroku master
+OR
+git push heroku your_local_branch_name:master (if not pushing from local master)
