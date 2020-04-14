@@ -12,7 +12,6 @@ bot.on('ready', () => {
   console.info(`Logged in as ${bot.user.tag}!`);
 });
 
-// refactor note: i should style my strings with ${} not + '' + '' + ''
 bot.on('message', msg => {
   if (msg.channel.name !== CHANNEL_NAME) return;
   if (!msg.content) return;
