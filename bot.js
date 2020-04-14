@@ -51,6 +51,17 @@ processMessage = (msg, content) => {
 }
 
 processCommand = (msg, content) => {
+
+  /* Begin Command Test */
+  let args = '`';
+  for(let i = 1; i < content.length; i++) {
+    if(i < content.length - 1) args += '[ '+content[i]+' ] | ';
+    else args += '[ '+content[i]+' ]`';
+  }
+  let argsString = args === '' ? ' called with no args.' : ' called with args ' + args
+  msg.channel.send('Command ' + '`'+content[0]+'`' + argsString);
+  /* End Command Test */
+
   switch (content[0]) {
     case '!average':
       break;
