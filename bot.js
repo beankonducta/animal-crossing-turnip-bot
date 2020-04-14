@@ -4,6 +4,7 @@ const bot = new Discord.Client();
 const TOKEN = process.env.TOKEN;
 
 const DEL_TIMEOUT = 12000;
+const DEL_TIMEOUT_SHORT = 1000;
 const CHANNEL_NAME = "turnip-prices";
 
 bot.login(TOKEN);
@@ -21,7 +22,7 @@ bot.on('message', msg => {
     let cmdAndArgs = msg.content.toLowerCase().split(' ');
     let cmd = cmdAndArgs[0];
     let len = cmdAndArgs.length;
-    if (len === 1) return;
+    //if (len === 1) return;
     let args = cmdAndArgs.slice(1, len);
     switch (cmd) {
       case 'b': {
@@ -36,6 +37,10 @@ bot.on('message', msg => {
         let max = 115;
         if (!processSell(msg, cmd, args, min, max, name))
           delMsg(msg, `Invalid Message Format. Try: '[s] [price as number, from ${min} to ${max}]`);
+        break;
+      }
+      case 'stonks': {
+        processStonks(msg, cmd, args);
         break;
       }
       case 't': {
@@ -67,9 +72,15 @@ processSell = (msg, cmd, args, min, max, name) => {
   return true;
 }
 
+processStonks = (msg, cmd, args) => {
+  msg.channel.send('https://i.redd.it/kh141vuquai41.png').then(res => {
+    msg.delete(DEL_TIMEOUT_SHORT);
+  });
+}
+
 delMsg = (msg, err) => {
   msg.reply(err).then(res => {
-    res.delete(DEL_TIMEOUT-100); // deletes the bots response
+    res.delete(DEL_TIMEOUT - 100); // deletes the bots response
     msg.delete(DEL_TIMEOUT); // deletes the original message
   });
 }
