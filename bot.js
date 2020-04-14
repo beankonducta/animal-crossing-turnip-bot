@@ -47,8 +47,10 @@ bot.on('message', msg => {
         console.log('testing!!');
         break;
       }
+      default: {
+        msg.delete(DEL_TIMEOUT_SHORT);
+      }
     }
-
   }
 });
 
