@@ -25,7 +25,7 @@ bot.on('message', msg => {
     switch (cmd) {
       case 'b': {
         processBuy(msg, cmd, args);
-        break;
+        break; // dunno if i need break here or if that's my old java ways lol
       }
       case 's': {
         processSell(msg, cmd, args);
