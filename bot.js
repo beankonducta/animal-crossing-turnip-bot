@@ -22,7 +22,6 @@ bot.on('message', msg => {
     let cmdAndArgs = msg.content.toLowerCase().split(' ');
     let cmd = cmdAndArgs[0];
     let len = cmdAndArgs.length;
-    //if (len === 1) return;
     let args = cmdAndArgs.slice(1, len);
     switch (cmd) {
       case 'b': {
@@ -47,6 +46,20 @@ bot.on('message', msg => {
         console.log('testing!!');
         break;
       }
+      case 'avg': {
+        processAverage(msg, cmd, args, name).then(res => {
+          if (res) {
+            let message = args[0] === 'me' ? name.toUpperCase() + "'s turnip average buy price is `" + res + " bells` thus far." :
+              "The channel's turnip average buy price is `" + res + " bells` thus far.";
+            msg.channel.send(message).then(res => {
+              msg.delete(DEL_TIMEOUT);
+            })
+          } else {
+            delMsg(msg, `Invalid Message Format. Try: '[avg] [me | all]`)
+          }
+        })
+        break;
+      }
       default: {
         msg.delete(DEL_TIMEOUT_SHORT);
       }
@@ -54,6 +67,7 @@ bot.on('message', msg => {
   }
 });
 
+// [b] [##] [am | pm]
 processBuy = (msg, cmd, args, min, max, name) => {
   if (args.length !== 2) return false;
   if (!numberBetween(args[0], min, max)) return false;
@@ -65,6 +79,7 @@ processBuy = (msg, cmd, args, min, max, name) => {
   return true;
 }
 
+// [s] [##]
 processSell = (msg, cmd, args, min, max, name) => {
   if (args.length !== 1) return false;
   if (!numberBetween(args[0], min, max)) return false;
@@ -72,6 +87,29 @@ processSell = (msg, cmd, args, min, max, name) => {
     msg.delete(DEL_TIMEOUT);
   }).catch();
   return true;
+}
+
+// [avg] [me | all]
+processAverage = async (msg, cmd, args, name) => {
+  if (args.length < 1) return false;
+  if (args[0] !== 'me' && args[0] !== 'all') return false;
+  let avg = await msg.channel.fetchMessages().then(res => {
+    let messages = args[0] !== 'me' ? res : res.filter(m => m.content.includes(name.toUpperCase()));
+    let validMessages = messages.filter(m => m.content.includes('`'));
+    let count = 0;
+    let total = 0;
+    for (let m of validMessages) {
+      if (m[1].content.includes('buying') && !m[1].content.includes('average')) {
+        let split = m[1].content.split('`');
+        let price = split[1].split(' ')[0];
+        if (validNumber(price))
+          total += +price;
+        count++;
+      }
+    }
+    return (total / count);
+  });
+  return avg;
 }
 
 processStonks = (msg, cmd, args) => {
@@ -114,7 +152,11 @@ randomNumber = (min, max) => {
 }
 
 numberBetween = (num, min, max) => {
-  if (!num.match(/^-{0,1}\d+$/)) return false;
+  if (!validNumber(num)) return false;
   if (num < +min || num > +max) return false;
   return true;
+}
+
+validNumber = (num) => {
+  return num.match(/^-{0,1}\d+$/);
 }
