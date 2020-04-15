@@ -114,7 +114,7 @@ processAverage = async (msg, cmd, args, name) => {
         count++;
       }
     }
-    return (total / count);
+    return Math.round(total / count);
   });
   return avg;
 }
