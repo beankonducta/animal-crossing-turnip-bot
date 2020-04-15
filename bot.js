@@ -68,7 +68,8 @@ bot.on('message', msg => {
         break;
       }
       default: {
-        msg.delete(DEL_TIMEOUT_SHORT);
+        if (name.toUpperCase() !== 'BEANKONDUCTA')
+          msg.delete(DEL_TIMEOUT_SHORT);
       }
     }
   }
@@ -123,8 +124,8 @@ processStonks = (msg, cmd, args, time) => {
   if (+time < +stonksTimer) return false;
   stonksTimer = +time + STONKS_COOLDOWN;
   msg.channel.send('https://i.redd.it/kh141vuquai41.png').then(res => {
-    console.log('time: '+time);
-    console.log('stonks timer: '+stonksTimer);
+    console.log('time: ' + time);
+    console.log('stonks timer: ' + stonksTimer);
     msg.delete(DEL_TIMEOUT_SHORT);
   });
   return true;
