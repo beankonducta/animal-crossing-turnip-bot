@@ -5,7 +5,7 @@ const TOKEN = process.env.TOKEN;
 
 const DEL_TIMEOUT = 12000;
 const DEL_TIMEOUT_SHORT = 1000;
-const STONKS_COOLDOWN = 1000000;
+const STONKS_COOLDOWN = 100000;
 const CHANNEL_NAME = "turnip-prices";
 
 var stonksTimer = 0;
