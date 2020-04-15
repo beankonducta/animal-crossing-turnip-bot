@@ -5,7 +5,10 @@ const TOKEN = process.env.TOKEN;
 
 const DEL_TIMEOUT = 12000;
 const DEL_TIMEOUT_SHORT = 1000;
+const STONKS_COOLDOWN = 10000;
 const CHANNEL_NAME = "turnip-prices";
+
+var stonksTimer = 0;
 
 bot.login(TOKEN);
 
@@ -19,6 +22,7 @@ bot.on('message', msg => {
 
   if (msg.author !== bot.user) {
     let name = msg.member.displayName;
+    let time = msg.createdTimestamp;
     let cmdAndArgs = msg.content.toLowerCase().split(' ');
     let cmd = cmdAndArgs[0];
     let len = cmdAndArgs.length;
@@ -38,14 +42,17 @@ bot.on('message', msg => {
           delMsg(msg, `Invalid Message Format. Try: '[s] [price as number, from ${min} to ${max}]`);
         break;
       }
-      case 'stonks': {
-        processStonks(msg, cmd, args);
-        break;
-      }
-      case 't': {
-        console.log('testing!!');
-        break;
-      }
+      // case 'stonks': {
+      //   if (!processStonks(msg, cmd, args, time)) {
+      //     let stonksOffset = (stonksTimer - time) / 1000;
+      //     delMsg(msg, `Can't use stonks command for another ${stonksOffset} seconds!`);
+      //   }
+      //   break;
+      // }
+      // case 't': {
+      //   console.log('testing!!');
+      //   break;
+      // }
       case 'avg': {
         processAverage(msg, cmd, args, name).then(res => {
           if (res) {
@@ -57,7 +64,7 @@ bot.on('message', msg => {
           } else {
             delMsg(msg, `Invalid Message Format. Try: '[avg] [me | all]`)
           }
-        })
+        });
         break;
       }
       default: {
@@ -98,7 +105,7 @@ processAverage = async (msg, cmd, args, name) => {
     let validMessages = messages.filter(m => m.content.includes('`'));
     let count = 0;
     let total = 0;
-    for (let m of validMessages) {
+    for (let m of messages) {
       if (m[1].content.includes('buying') && !m[1].content.includes('average')) {
         let split = m[1].content.split('`');
         let price = split[1].split(' ')[0];
@@ -112,10 +119,13 @@ processAverage = async (msg, cmd, args, name) => {
   return avg;
 }
 
-processStonks = (msg, cmd, args) => {
+processStonks = (msg, cmd, args, time) => {
+  if (time < stonksTimer) return false;
   msg.channel.send('https://i.redd.it/kh141vuquai41.png').then(res => {
+    stonksTimer = time + stonksCooldown;
     msg.delete(DEL_TIMEOUT_SHORT);
   });
+  return true;
 }
 
 delMsg = (msg, err) => {
