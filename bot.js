@@ -96,8 +96,10 @@ bot.on('message', msg => {
         break;
       }
       default: {
-        if (name.toUpperCase() !== 'BEANKONDUCTA')
-          msg.delete(DEL_TIMEOUT_SHORT);
+        if (name.toUpperCase() !== 'BEANKONDUCTA') {
+          if (!msg.content.startsWith('@here'))
+            msg.delete(DEL_TIMEOUT_SHORT);
+        }
       }
     }
   }
