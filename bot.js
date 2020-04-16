@@ -54,7 +54,7 @@ bot.on('message', msg => {
         break;
       }
       case 'avg': {
-        processAverage(msg, cmd, args, name).then(res => {
+        processNumbers(msg, cmd, args, name).then(res => {
           if (res) {
             let message = args[0] === 'me' ? name.toUpperCase() + "'s average turnip buy price is `" + res + " bells` thus far." :
               "The channel's average buy price is `" + res + " bells` thus far.";
@@ -68,7 +68,7 @@ bot.on('message', msg => {
         break;
       }
       case 'best': {
-        processBest(msg, cmd, args, name).then(res => {
+        processNumbers(msg, cmd, args, name).then(res => {
           if (res) {
             let message = args[0] === 'me' ? name.toUpperCase() + "'s best turnip buy price is `" + res + " bells` thus far." :
               "The channel's best turnip buy price is `" + res + " bells` thus far.";
@@ -82,7 +82,7 @@ bot.on('message', msg => {
         break;
       }
       case 'worst': {
-        processWorst(msg, cmd, args, name).then(res => {
+        processNumbers(msg, cmd, args, name).then(res => {
           if (res) {
             let message = args[0] === 'me' ? name.toUpperCase() + "'s worst turnip buy price is `" + res + " bells` thus far." :
               "The channel's worst turnip buy price is `" + res + " bells` thus far.";
@@ -127,68 +127,33 @@ processSell = (msg, cmd, args, min, max, name) => {
   return true;
 }
 
-// [avg] [me | all]
-processAverage = async (msg, cmd, args, name) => {
+// [avg | best | worst] [me | all]
+processNumbers = async (msg, cmd, args, name) => {
   if (args.length < 1) return false;
   if (args[0] !== 'me' && args[0] !== 'all') return false;
   let avg = await msg.channel.fetchMessages().then(res => {
     let messages = args[0] !== 'me' ? res : res.filter(m => m.content.includes(name.toUpperCase()));
     let count = 0;
     let total = 0;
-    for (let m of messages) {
-      if (m[1].content.includes('buying') && !m[1].content.includes('average')) {
-        let split = m[1].content.split('`');
-        let price = split[1].split(' ')[0];
-        if (validNumber(price))
-          total += +price;
-        count++;
-      }
-    }
-    return Math.round(total / count);
-  });
-  return avg;
-}
-
-// [best] [me | all]
-processBest = async (msg, cmd, args, name) => {
-  if (args.length < 1) return false;
-  if (args[0] !== 'me' && args[0] !== 'all') return false;
-  let best = await msg.channel.fetchMessages().then(res => {
-    let messages = args[0] !== 'me' ? res : res.filter(m => m.content.includes(name.toUpperCase()));
     let bestSoFar = 0;
-    for (let m of messages) {
-      if (m[1].content.includes('buying') && !m[1].content.includes('average')) {
-        let split = m[1].content.split('`');
-        let price = split[1].split(' ')[0];
-        if (validNumber(price))
-          if (+price > bestSoFar)
-            bestSoFar = +price;
-      }
-    }
-    return Math.round(bestSoFar);
-  });
-  return best;
-}
-
-// [worst] [me | all]
-processWorst = async (msg, cmd, args, name) => {
-  if (args.length < 1) return false;
-  if (args[0] !== 'me' && args[0] !== 'all') return false;
-  let worst = await msg.channel.fetchMessages().then(res => {
-    let messages = args[0] !== 'me' ? res : res.filter(m => m.content.includes(name.toUpperCase()));
     let worstSoFar = 10000;
     for (let m of messages) {
       if (m[1].content.includes('buying') && !m[1].content.includes('average')) {
         let split = m[1].content.split('`');
         let price = split[1].split(' ')[0];
-        if (validNumber(price))
-          if (+price < worstSoFar)
-            worstSoFar = +price;
+        if (validNumber(price)) {
+          total += +price;
+          if(+price > bestSoFar) bestSoFar = +price;
+          if(+price < worstSoFar) worstSoFar = +price;
+        }
+        count++;
       }
     }
-    return Math.round(worstSoFar);
+    if(cmd === 'best') return bestSoFar;
+    if(cmd === 'worst') return worstSoFar;
+    if(cmd === 'avg') return Math.round(total / count);
   });
-  return worst;
+  return avg;
 }
 
 // [stonks]
