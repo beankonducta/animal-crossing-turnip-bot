@@ -5,7 +5,7 @@ const TOKEN = process.env.TOKEN;
 
 const DEL_TIMEOUT = 12000;
 const DEL_TIMEOUT_SHORT = 1000;
-const STONKS_COOLDOWN = 100000;
+const STONKS_COOLDOWN = 1000000;
 const CHANNEL_NAME = "turnip-prices";
 
 var stonksTimer = 0;
@@ -56,13 +56,41 @@ bot.on('message', msg => {
       case 'avg': {
         processAverage(msg, cmd, args, name).then(res => {
           if (res) {
-            let message = args[0] === 'me' ? name.toUpperCase() + "'s turnip average buy price is `" + res + " bells` thus far." :
-              "The channel's turnip average buy price is `" + res + " bells` thus far.";
+            let message = args[0] === 'me' ? name.toUpperCase() + "'s average turnip buy price is `" + res + " bells` thus far." :
+              "The channel's average buy price is `" + res + " bells` thus far.";
             msg.channel.send(message).then(res => {
               msg.delete(DEL_TIMEOUT);
             })
           } else {
             delMsg(msg, `Invalid Message Format. Try: '[avg] [me | all]`)
+          }
+        });
+        break;
+      }
+      case 'best': {
+        processBest(msg, cmd, args, name).then(res => {
+          if (res) {
+            let message = args[0] === 'me' ? name.toUpperCase() + "'s best turnip buy price is `" + res + " bells` thus far." :
+              "The channel's best turnip buy price is `" + res + " bells` thus far.";
+            msg.channel.send(message).then(res => {
+              msg.delete(DEL_TIMEOUT);
+            })
+          } else {
+            delMsg(msg, `Invalid Message Format. Try: '[best] [me | all]`)
+          }
+        });
+        break;
+      }
+      case 'worst': {
+        processWorst(msg, cmd, args, name).then(res => {
+          if (res) {
+            let message = args[0] === 'me' ? name.toUpperCase() + "'s worst turnip buy price is `" + res + " bells` thus far." :
+              "The channel's worst turnip buy price is `" + res + " bells` thus far.";
+            msg.channel.send(message).then(res => {
+              msg.delete(DEL_TIMEOUT);
+            })
+          } else {
+            delMsg(msg, `Invalid Message Format. Try: '[worst] [me | all]`)
           }
         });
         break;
@@ -103,7 +131,6 @@ processAverage = async (msg, cmd, args, name) => {
   if (args[0] !== 'me' && args[0] !== 'all') return false;
   let avg = await msg.channel.fetchMessages().then(res => {
     let messages = args[0] !== 'me' ? res : res.filter(m => m.content.includes(name.toUpperCase()));
-    let validMessages = messages.filter(m => m.content.includes('`'));
     let count = 0;
     let total = 0;
     for (let m of messages) {
@@ -120,12 +147,53 @@ processAverage = async (msg, cmd, args, name) => {
   return avg;
 }
 
+// [best] [me | all]
+processBest = async (msg, cmd, args, name) => {
+  if (args.length < 1) return false;
+  if (args[0] !== 'me' && args[0] !== 'all') return false;
+  let best = await msg.channel.fetchMessages().then(res => {
+    let messages = args[0] !== 'me' ? res : res.filter(m => m.content.includes(name.toUpperCase()));
+    let bestSoFar = 0;
+    for (let m of messages) {
+      if (m[1].content.includes('buying') && !m[1].content.includes('average')) {
+        let split = m[1].content.split('`');
+        let price = split[1].split(' ')[0];
+        if (validNumber(price))
+          if (+price > bestSoFar)
+            bestSoFar = +price;
+      }
+    }
+    return Math.round(bestSoFar);
+  });
+  return best;
+}
+
+// [worst] [me | all]
+processWorst = async (msg, cmd, args, name) => {
+  if (args.length < 1) return false;
+  if (args[0] !== 'me' && args[0] !== 'all') return false;
+  let worst = await msg.channel.fetchMessages().then(res => {
+    let messages = args[0] !== 'me' ? res : res.filter(m => m.content.includes(name.toUpperCase()));
+    let worstSoFar = 10000;
+    for (let m of messages) {
+      if (m[1].content.includes('buying') && !m[1].content.includes('average')) {
+        let split = m[1].content.split('`');
+        let price = split[1].split(' ')[0];
+        if (validNumber(price))
+          if (+price < worstSoFar)
+            worstSoFar = +price;
+      }
+    }
+    return Math.round(worstSoFar);
+  });
+  return worst;
+}
+
+// [stonks]
 processStonks = (msg, cmd, args, time) => {
   if (+time < +stonksTimer) return false;
   stonksTimer = +time + STONKS_COOLDOWN;
   msg.channel.send('https://i.redd.it/kh141vuquai41.png').then(res => {
-    console.log('time: ' + time);
-    console.log('stonks timer: ' + stonksTimer);
     msg.delete(DEL_TIMEOUT_SHORT);
   });
   return true;
