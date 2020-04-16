@@ -49,10 +49,6 @@ bot.on('message', msg => {
         }
         break;
       }
-      case 't': {
-        console.log('testing!!');
-        break;
-      }
       case 'avg': {
         processAverage(msg, cmd, args, name).then(res => {
           if (res) {
