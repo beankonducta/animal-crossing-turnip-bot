@@ -5,6 +5,8 @@ const TOKEN = process.env.TOKEN;
 
 const moment = require('moment-timezone');
 
+const scripts = require('./calc/scripts');
+
 const DEL_TIMEOUT = 12000;
 const DEL_TIMEOUT_SHORT = 1000;
 const STONKS_COOLDOWN = 1000000;
@@ -13,6 +15,21 @@ const CHANNEL_NAME = "turnip-prices";
 var stonksTimer = 0;
 
 bot.login(TOKEN);
+
+/**
+ * TURNIP CALCULATOR:
+ * 
+ * I've successfully stolen the turnip calc code and made it usable here. Steps to make work:
+ * 
+ * - Crawl Messages for prices from (x) user. We need to detect the day and time of each price message.
+ * - Format those prices into the array: [s price, b price am, b price pm] (with b prices repeating daily)
+ * - Put that data into scripts.calculateOutput([arr], false, -1)
+ * --- [ false refers to first buy, -1 is the last pattern which we don't know ]
+ * - Take that outputted data and format it.
+ * 
+ * 
+ * 
+ */
 
 bot.on('ready', () => {
   console.info(`Logged in as ${bot.user.tag}!`);
@@ -29,7 +46,7 @@ bot.on('message', msg => {
     let cmd = cmdAndArgs[0];
     let len = cmdAndArgs.length;
     let args = cmdAndArgs.slice(1, len);
-    console.log(toTimeZone(msg.createdTimestamp, 'm'));
+    toTimezone(msg.createdTimestamp, 'm');
     switch (cmd) {
       case 'b': {
         let min = 20;
@@ -244,21 +261,55 @@ validNumber = (num) => {
 }
 
 /**
- * This works but we need to get something formatted for the turnip calculator, I think it's like
- * [ m am, m pm, t am, t pm, w am, w pm, etc etc ]
+ * Exports the message timestamp as {day, time(am or pm)}
+ * [sun: 0, mon: 1, tues: 2, wed: 3, etc]
  */
-toTimeZone = (timestamp, timezone) => {
-  let t = timezone.toLowerCase();
-  switch (t) {
+toTimezone = (timestamp, timezone) => {
+  let days = ['Sunday', 'monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  let str;
+  switch (timezone.toLowerCase()) {
     case 'm': // mountain
-      return moment(timestamp).tz('America/Denver').format('YYYY-MM-DD HH:mm');
+      str = moment(timestamp).tz('America/Denver').format('dddd HH');
+      break;
     case 'e': // eastern
-      return moment(timestamp).tz('America/New_York').format('YYYY-MM-DD HH:mm');
+      str = moment(timestamp).tz('America/New_York').format('dddd HH');
+      break;
     case 'p': // pacific
-      return moment(timestamp).tz('America/Los_Angeles').format('YYYY-MM-DD HH:mm');
+      str = moment(timestamp).tz('America/Los_Angeles').format('dddd HH');
+      break;
     case 'c': // central
-      return moment(timestamp).tz('America/Chicago').format('YYYY-MM-DD HH:mm');
+      str = moment(timestamp).tz('America/Chicago').format('dddd HH');
+      break;
     default: // default to mountain
-      return moment(timestamp).tz('America/Denver').format('YYYY-MM-DD HH:mm');
+      str = moment(timestamp).tz('America/Denver').format('dddd HH');
+      break;
   }
+  if (!str) return;
+  let split = str.split(' ');
+  let time = +split[1] >= 12 ? 'pm' : 'am';
+  let day = days.indexOf(split[0]);
+  return { day, time };
+}
+
+buildPricingArray = async (msg, name, args) => {
+  let startDate; // need to figure out the first date to crawl the messages for
+  let endDate; //need to figure out the last date the crawl the messages for. probably just Date.now()
+  let pricingArray = [];
+  let timezone = args.length < 1 ? 'm' : args[0];
+  let msgs = await msg.channel.fetchMessages().then(res => {
+    let messages = res.filter(m => m.content.includes(name.toUpperCase()));
+    for (let m of messages) {
+      if (m[1].content.includes('buying') && !m[1].content.includes('average')) {
+        if (+m.createdTimeStamp <= +endDate && m.createdTimeStamp >= +startDate)
+          pricingArray.push(toTimezone(m.createdTimestamp, timezone));
+      }
+    }
+  });
+  return pricingArray;
+}
+
+convertToUsablePricingArray = (arr) => {
+  let usableArray = arr.sort(a, b => a.day > b.day); // basic sort by day
+  // then we need to merge the 'am' and the 'pm' into a single day
+  console.log(usableArray);
 }
