@@ -3,6 +3,8 @@ const Discord = require('discord.js');
 const bot = new Discord.Client();
 const TOKEN = process.env.TOKEN;
 
+const moment = require('moment-timezone');
+
 const DEL_TIMEOUT = 12000;
 const DEL_TIMEOUT_SHORT = 1000;
 const STONKS_COOLDOWN = 1000000;
@@ -27,6 +29,7 @@ bot.on('message', msg => {
     let cmd = cmdAndArgs[0];
     let len = cmdAndArgs.length;
     let args = cmdAndArgs.slice(1, len);
+    console.log(toTimeZone(msg.createdTimestamp, 'm'));
     switch (cmd) {
       case 'b': {
         let min = 20;
@@ -238,4 +241,20 @@ numberBetween = (num, min, max) => {
 
 validNumber = (num) => {
   return num.match(/^-{0,1}\d+$/);
+}
+
+toTimeZone = (timestamp, timezone) => {
+  let t = timezone.toLowerCase();
+  switch (t) {
+    case 'm': // mountain
+      return moment(timestamp).tz('America/Denver').format('YYYY-MM-DD HH:mm');
+    case 'e': // eastern
+      return moment(timestamp).tz('America/New_York').format('YYYY-MM-DD HH:mm');
+    case 'p': // pacific
+      return moment(timestamp).tz('America/Los_Angeles').format('YYYY-MM-DD HH:mm');
+    case 'c': // central
+      return moment(timestamp).tz('America/Chicago').format('YYYY-MM-DD HH:mm');
+    default: // default to mountain
+      return moment(timestamp).tz('America/Denver').format('YYYY-MM-DD HH:mm');
+  }
 }
