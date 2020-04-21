@@ -243,6 +243,10 @@ validNumber = (num) => {
   return num.match(/^-{0,1}\d+$/);
 }
 
+/**
+ * This works but we need to get something formatted for the turnip calculator, I think it's like
+ * [ m am, m pm, t am, t pm, w am, w pm, etc etc ]
+ */
 toTimeZone = (timestamp, timezone) => {
   let t = timezone.toLowerCase();
   switch (t) {
