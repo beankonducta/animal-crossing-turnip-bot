@@ -16,21 +16,6 @@ var stonksTimer = 0;
 
 bot.login(TOKEN);
 
-/**
- * TURNIP CALCULATOR:
- * 
- * I've successfully stolen the turnip calc code and made it usable here. Steps to make work:
- * 
- * - Crawl Messages for prices from (x) user. We need to detect the day and time of each price message.
- * - Format those prices into the array: [s price, b price am, b price pm] (with b prices repeating daily)
- * - Put that data into scripts.calculateOutput([arr], false, -1)
- * --- [ false refers to first buy, -1 is the last pattern which we don't know ]
- * - Take that outputted data and format it.
- * 
- * 
- * 
- */
-
 bot.on('ready', () => {
   console.info(`Logged in as ${bot.user.tag}!`);
 });
@@ -38,7 +23,6 @@ bot.on('ready', () => {
 bot.on('message', msg => {
   if (msg.channel.name !== CHANNEL_NAME) return;
   if (!msg.content) return;
-
   if (msg.author !== bot.user) {
     let name = msg.member.displayName;
     let time = msg.createdTimestamp;
@@ -46,7 +30,6 @@ bot.on('message', msg => {
     let cmd = cmdAndArgs[0];
     let len = cmdAndArgs.length;
     let args = cmdAndArgs.slice(1, len);
-    toTimezone(msg.createdTimestamp, 'm');
     switch (cmd) {
       case 'b': {
         let min = 20;
@@ -110,6 +93,11 @@ bot.on('message', msg => {
           }
         });
         break;
+      }
+      case 'calc': {
+        buildPricingArray(msg, name, args).then(res => {
+          convertCalcOutput(scripts.calculateOutput(convertToUsablePricingArray(res), false, -1));
+        })
       }
       default: {
         if (name.toUpperCase() !== 'BEANKONDUCTA') {
@@ -291,25 +279,54 @@ toTimezone = (timestamp, timezone) => {
   return { day, time };
 }
 
+// this is working on test server but not real one
 buildPricingArray = async (msg, name, args) => {
-  let startDate; // need to figure out the first date to crawl the messages for
-  let endDate; //need to figure out the last date the crawl the messages for. probably just Date.now()
+  let startDate = moment().clone().weekday(0).valueOf();
+  let endDate = moment().clone().weekday(6).valueOf();
   let pricingArray = [];
   let timezone = args.length < 1 ? 'm' : args[0];
+  // console.log(endDate);
+  // console.log(startDate);
   let msgs = await msg.channel.fetchMessages().then(res => {
     let messages = res.filter(m => m.content.includes(name.toUpperCase()));
     for (let m of messages) {
+      // console.log(m[1].createdTimestamp);
       if (m[1].content.includes('buying') && !m[1].content.includes('average')) {
-        if (+m.createdTimeStamp <= +endDate && m.createdTimeStamp >= +startDate)
-          pricingArray.push(toTimezone(m.createdTimestamp, timezone));
+        if (+m[1].createdTimestamp <= +endDate && m[1].createdTimestamp >= +startDate) {
+          let split = m[1].content.split('`');
+          let price = split[1].split(' ')[0];
+          pricingArray.push({ ...toTimezone(m.createdTimestamp, timezone), price });
+        }
+      }
+      if (m[1].content.includes('selling') && !m[1].content.includes('average')) {
+        if (+m[1].createdTimestamp <= +endDate && m[1].createdTimestamp >= +startDate) {
+          let split = m[1].content.split('`');
+          let price = split[1].split(' ')[0];
+          pricingArray.push({ day: 'selling', price });
+        }
       }
     }
   });
   return pricingArray;
 }
 
+// this works! might run into issues with arrays with duplicates tho
 convertToUsablePricingArray = (arr) => {
-  let usableArray = arr.sort(a, b => a.day > b.day); // basic sort by day
-  // then we need to merge the 'am' and the 'pm' into a single day
-  console.log(usableArray);
+  let usableArray = arr.sort((a, b) => a.day - b.day); // basic sort by day
+  let newArray = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  for (let item of usableArray) {
+    if (item.day === 'selling') {
+      newArray[0] = item.price;
+    }
+    else {
+      let dayMod = item.time === 'am' ? item.day - 1 : item.day;
+      newArray[item.day + dayMod] = item.price; // normally we'd -1 on the index, but since we want the first slot to be turnip sell price we leave as is.
+    }
+  }
+  console.log(newArray);
+  return newArray;
+}
+
+convertCalcOutput = (output) => {
+  console.log(output);
 }
