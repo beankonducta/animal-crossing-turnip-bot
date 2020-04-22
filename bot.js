@@ -108,6 +108,7 @@ bot.on('message', msg => {
       case 'calc': {
         buildPricingArray(msg, name, args).then(res => {
           convertCalcOutput(scripts.calculateOutput(convertToUsablePricingArray(res), false, -1));
+          msg.delete(DEL_TIMEOUT_SHORT);
         })
       }
       default: {
