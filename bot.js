@@ -16,6 +16,17 @@ var stonksTimer = 0;
 
 bot.login(TOKEN);
 
+/**
+ * Running into limitations - querying the messages from 'channel' returns a max of 100 messages.
+ * 
+ * The issues we're running into aren't related to the limitation but made me realize the limitation.
+ * The issues we're running into are probably un-resolved promise related -- we're only getting a single
+ * message back when we should be getting multiple. But now there's the realization of the query limitation
+ * so we need to find a better way to get messages back.
+ * 
+ * 
+ * 
+ */
 bot.on('ready', () => {
   console.info(`Logged in as ${bot.user.tag}!`);
 });
@@ -287,8 +298,9 @@ buildPricingArray = async (msg, name, args) => {
   let timezone = args.length < 1 ? 'm' : args[0];
   // console.log(endDate);
   // console.log(startDate);
-  let msgs = await msg.channel.fetchMessages().then(res => {
+  let msgs = await msg.channel.fetchMessages({limit: 100}).then(res => {
     let messages = res.filter(m => m.content.includes(name.toUpperCase()));
+    console.log(res.size);
     for (let m of messages) {
       // console.log(m[1].createdTimestamp);
       if (m[1].content.includes('buying') && !m[1].content.includes('average')) {
@@ -320,7 +332,7 @@ convertToUsablePricingArray = (arr) => {
     }
     else {
       let dayMod = item.time === 'am' ? item.day - 1 : item.day;
-      newArray[item.day + dayMod] = item.price; // normally we'd -1 on the index, but since we want the first slot to be turnip sell price we leave as is.
+      newArray[item.day + dayMod] = item.price;
     }
   }
   console.log(newArray);
