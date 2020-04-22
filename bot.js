@@ -122,10 +122,11 @@ bot.on('message', msg => {
 
 // [b] [##] [am | pm]
 processBuy = (msg, cmd, args, min, max, name) => {
-  if (args.length !== 2) return false;
+  if (args.length < 1) return false;
   if (!numberBetween(args[0], min, max)) return false;
-  if (args[1] !== 'am' && args[1] !== 'pm') return false;
-  let time = args[1] === 'am' ? 'morning' : 'afternoon';
+  //if (args[1] !== 'am' && args[1] !== 'pm') return false;
+  let zone = args.length === 2 ? args[1] : '';
+  let time = toTimezone(msg.createdTimestamp, zone).time === 'am' ? 'morning' : 'afternoon';
   msg.channel.send(name.toUpperCase() + "'s " + nookName() + " are buying turnips for  `" + args[0] + " bells` this " + time + ".").then(res => {
     msg.delete(DEL_TIMEOUT);
   }).catch();
