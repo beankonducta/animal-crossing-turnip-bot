@@ -300,7 +300,7 @@ buildPricingArray = async (msg, name, args) => {
   let timezone = args.length < 1 ? 'm' : args[0];
   // console.log(endDate);
   // console.log(startDate);
-  let msgs = await msg.channel.fetchMessages({limit: 100}).then(res => {
+  let msgs = await msg.channel.fetchMessages({ limit: 100 }).then(res => {
     let messages = res.filter(m => m.content.includes(name.toUpperCase()));
     console.log(res.size);
     for (let m of messages) {
@@ -322,6 +322,22 @@ buildPricingArray = async (msg, name, args) => {
     }
   });
   return pricingArray;
+}
+
+recursiveMessageFetch = async (msg, total, lastId, current, messageList) => {
+  if(!messageList) messageList = [];
+  let limit = 25;
+  let msgs = await msg.channel.fetchMessages({ limit }).then(res => { // need to incorporate the startAt / or whatever its called here (using lastId)
+    messageList = messageList.concat(res); // should merge the arrays?
+    lastId = res[res.size-1].id; // dunno if this is correct. used res.size incase res is smaller than limit
+    current += res.size;
+    if(current < total) {
+      recursiveMessageFetch(msg, total, lastId, current, messageList); // go again!
+    } else {
+      console.log(messageList.size); // test
+      return messageList; // we've reached our desired size, return;
+    }
+  });
 }
 
 // this works! might run into issues with arrays with duplicates tho
