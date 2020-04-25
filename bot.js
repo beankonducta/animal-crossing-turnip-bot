@@ -108,9 +108,11 @@ bot.on('message', msg => {
       case 'calc': {
         buildPricingArray(msg, name, args).then(res => {
           let calc = convertCalcOutput(scripts.calculateOutput(convertToUsablePricingArray(res), false, -1));
-          msg.channel.send(calc);
-          msg.delete(DEL_TIMEOUT_SHORT);
+          msg.channel.send(calc).then(res => {
+            msg.delete(DEL_TIMEOUT);
+          })
         })
+        break;
       }
       default: {
         if (name.toUpperCase() !== 'BEANKONDUCTA') {
@@ -125,7 +127,7 @@ bot.on('message', msg => {
   }
 });
 
-// [b] [##] [am | pm]
+// [b] [##] [timezone]
 processBuy = (msg, cmd, args, min, max, name) => {
   if (args.length < 1) return false;
   if (!numberBetween(args[0], min, max)) return false;
@@ -300,19 +302,16 @@ toTimezone = (timestamp, timezone) => {
   return { day, time };
 }
 
-// this is working on test server but not real one
+// this isn't actually working at all
 buildPricingArray = async (msg, name, args) => {
   let startDate = moment().clone().weekday(0).valueOf();
   let endDate = moment().clone().weekday(6).valueOf();
   let pricingArray = [];
   let timezone = args.length < 1 ? 'm' : args[0];
-  // console.log(endDate);
-  // console.log(startDate);
   let msgs = await msg.channel.fetchMessages({ limit: 100 }).then(res => {
-    let messages = res.filter(m => m.content.includes(name.toUpperCase()));
-    console.log(res.size);
+    let messages = res;
     for (let m of messages) {
-      // console.log(m[1].createdTimestamp);
+      console.log(m[1].createdTimestamp);
       if (m[1].content.includes('buying') && !m[1].content.includes('average')) {
         if (+m[1].createdTimestamp <= +endDate && m[1].createdTimestamp >= +startDate) {
           let split = m[1].content.split('`');
@@ -329,6 +328,7 @@ buildPricingArray = async (msg, name, args) => {
       }
     }
   });
+  console.log(pricingArray);
   return pricingArray;
 }
 
@@ -351,6 +351,7 @@ recursiveMessageFetch = async (msg, total, lastId, current, messageList) => {
 // this works! might run into issues with arrays with duplicates tho
 convertToUsablePricingArray = (arr) => {
   let usableArray = arr.sort((a, b) => a.day - b.day); // basic sort by day
+ // console.log(usableArray);
   let newArray = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   for (let item of usableArray) {
     if (item.day === 'selling') {
@@ -361,10 +362,9 @@ convertToUsablePricingArray = (arr) => {
       newArray[item.day + dayMod] = item.price;
     }
   }
-  console.log(newArray);
   return newArray;
 }
 
 convertCalcOutput = (output) => {
-  console.log(output);
+ // console.log(output);
 }
