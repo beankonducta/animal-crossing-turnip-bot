@@ -46,7 +46,7 @@ bot.on('message', msg => {
         let min = 20;
         let max = 900;
         if (!processBuy(msg, cmd, args, min, max, name))
-          delMsg(msg, `Invalid Message Format. Try: '[b] [price as number, from ${min} to ${max}] [am | pm]`);
+          delMsg(msg, `Invalid Message Format. Try: '[b] [price as number, from ${min} to ${max}] [e | m | p | c (optional timezone)]`);
         break;
       }
       case 's': {
@@ -107,14 +107,18 @@ bot.on('message', msg => {
       }
       case 'calc': {
         buildPricingArray(msg, name, args).then(res => {
-          convertCalcOutput(scripts.calculateOutput(convertToUsablePricingArray(res), false, -1));
+          let calc = convertCalcOutput(scripts.calculateOutput(convertToUsablePricingArray(res), false, -1));
+          msg.channel.send(calc);
           msg.delete(DEL_TIMEOUT_SHORT);
         })
       }
       default: {
         if (name.toUpperCase() !== 'BEANKONDUCTA') {
-          if (!msg.content.startsWith('@here'))
-            msg.delete(DEL_TIMEOUT_SHORT);
+          delMsg(msg, `Invalid Message Format. Please Read the Server Description for Commands.`)
+        } else {
+          if(!msg.content.startsWith('@here')) {
+            delMsg(msg, `[Type @here to bypass bot deletion]`)
+          }
         }
       }
     }
@@ -300,7 +304,7 @@ buildPricingArray = async (msg, name, args) => {
   let timezone = args.length < 1 ? 'm' : args[0];
   // console.log(endDate);
   // console.log(startDate);
-  let msgs = await msg.channel.fetchMessages({limit: 100}).then(res => {
+  let msgs = await msg.channel.fetchMessages({ limit: 100 }).then(res => {
     let messages = res.filter(m => m.content.includes(name.toUpperCase()));
     console.log(res.size);
     for (let m of messages) {
