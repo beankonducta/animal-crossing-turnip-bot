@@ -132,7 +132,9 @@ processBuy = (msg, cmd, args, min, max, name) => {
   //if (args[1] !== 'am' && args[1] !== 'pm') return false;
   let zone = args.length === 2 ? args[1] : '';
   let time = toTimezone(msg.createdTimestamp, zone).time === 'am' ? 'morning' : 'afternoon';
-  msg.channel.send(name.toUpperCase() + "'s " + nookName() + " are buying turnips for  `" + args[0] + " bells` this " + time + ".").then(res => {
+  let price = args[0];
+  let msgHeader = +price >= 300 ? '@everyone ' : '';
+  msg.channel.send(msgHeader + name.toUpperCase() + "'s " + nookName() + " are buying turnips for  `" + price + " bells` this " + time + ".").then(res => {
     msg.delete(DEL_TIMEOUT);
   }).catch();
   return true;
@@ -142,7 +144,9 @@ processBuy = (msg, cmd, args, min, max, name) => {
 processSell = (msg, cmd, args, min, max, name) => {
   if (args.length !== 1) return false;
   if (!numberBetween(args[0], min, max)) return false;
-  msg.channel.send(name.toUpperCase() + "'s " + hogName() + " is selling turnips for `" + args[0] + " bells`.").then(res => {
+  let price = args[0];
+  let msgHeader = +price <= 94 ? '@everyone ' : '';
+  msg.channel.send(msgHeader + name.toUpperCase() + "'s " + hogName() + " is selling turnips for `" + price + " bells`.").then(res => {
     msg.delete(DEL_TIMEOUT);
   }).catch();
   return true;

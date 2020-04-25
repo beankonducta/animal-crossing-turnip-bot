@@ -1,0 +1,35 @@
+@everyone Welcome to Turnip Talk!
+
+This Discord is to help people make bank on Turnips in Animal Crossing: New Horizons.
+
+#turnip-prices
+https://turnipprophet.io/index.html
+
+```
+
+# Post your turnip sell price Sunday before noon.
+# Post your turnip buy price twice daily (8 am to noon, noon to close).
+
+If you post a price here, please be willing to open your island for other players to reap the rewards.
+
+```
+
+I made a bot for the channel that helps format turnip prices and has some commands for fun. 
+
+COMMANDS [type without brackets]:
+
+```
+
+[b] [price] [e | p | c | m (timezone, optional)] --- Posts your turnip buy price. Timezone defaults to mountain time.
+[s] [price] --- Posts your Sunday turnip selling price.
+[stonks] --- Posts the stonks image. Only usable every 15 minutes.
+[avg | best | worst] [me | all] --- Posts statz related to you or the whole server.
+
+
+The following commands are seriously broken but will be available one day:
+
+[calc] --- Plugs your weeks prices into the TurnipProphet calculator and spits out a result.
+
+```
+
+Enjoy!
