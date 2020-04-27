@@ -6,6 +6,7 @@ const isEmpty = function (arr) {
 }
 
 const calculateOutput = function (data, first_buy, previous_pattern) {
+  console.log(data);
   if (isEmpty(data)) {
     console.log('empty data.')
     return;
@@ -37,7 +38,7 @@ const generatePermalink = function (buy_price, sell_prices, first_buy, previous_
     searchParams.append('pattern', previous_pattern);
   }
 
-  return searchParams.toString() && window.location.origin.concat('?', searchParams.toString());
+  return 'https://turnipprophet.io/?'+searchParams.toString();
 }
 
 module.exports = { calculateOutput, generatePermalink };
