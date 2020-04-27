@@ -16,21 +16,8 @@ var stonksTimer = 0;
 
 bot.login(TOKEN);
 
-/**
- * Running into limitations - querying the messages from 'channel' returns a max of 100 messages.
- * 
- * The issues we're running into aren't related to the limitation but made me realize the limitation.
- * The issues we're running into are probably un-resolved promise related -- we're only getting a single
- * message back when we should be getting multiple. But now there's the realization of the query limitation
- * so we need to find a better way to get messages back.
- * 
- * 
- * 
- */
 bot.on('ready', async () => {
   console.info(`Logged in as ${bot.user.tag}!`);
-
-  // Iterate through all the messages as they're pulled
 });
 
 bot.on('message', async msg => {
@@ -111,7 +98,6 @@ bot.on('message', async msg => {
         let msgs = [];
         for await (const message of loadAllMessages(msg.channel)) {
           msgs.push(message);
-          // console.log(message.content);
         }
         buildPricingArray(msgs, name, args).then(res => {
           let priceArray = convertToUsablePricingArray(res);
@@ -119,8 +105,9 @@ bot.on('message', async msg => {
           let sell = priceArray.slice(1, priceArray.length);
           let calc = convertCalcOutput(scripts.calculateOutput(priceArray, false, -1));
           let permaLink = scripts.generatePermalink(buy, sell, false, -1);
-          msg.channel.send(permaLink);
-          msg.delete(DEL_TIMEOUT_SHORT);
+          msg.channel.send(permaLink).then(res => {
+            msg.delete(DEL_TIMEOUT_SHORT);
+          });
         })
         break;
       }
@@ -141,7 +128,6 @@ bot.on('message', async msg => {
 processBuy = (msg, cmd, args, min, max, name) => {
   if (args.length < 1) return false;
   if (!numberBetween(args[0], min, max)) return false;
-  //if (args[1] !== 'am' && args[1] !== 'pm') return false;
   let zone = args.length === 2 ? args[1] : '';
   let time = toTimezone(msg.createdTimestamp, zone).time === 'am' ? 'morning' : 'afternoon';
   let price = args[0];
@@ -372,6 +358,7 @@ convertToUsablePricingArray = (arr) => {
   return newArray;
 }
 
+// this just formats some console logs.. fer now
 convertCalcOutput = (output) => {
   if(output) {
     if(output.length >= 1) {
