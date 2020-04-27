@@ -27,11 +27,13 @@ bot.login(TOKEN);
  * 
  * 
  */
-bot.on('ready', () => {
+bot.on('ready', async () => {
   console.info(`Logged in as ${bot.user.tag}!`);
+
+  // Iterate through all the messages as they're pulled
 });
 
-bot.on('message', msg => {
+bot.on('message', async msg => {
   if (msg.channel.name !== CHANNEL_NAME) return;
   if (!msg.content) return;
   if (msg.author !== bot.user) {
@@ -106,9 +108,14 @@ bot.on('message', msg => {
         break;
       }
       case 'calc': {
-        buildPricingArray(msg, name, args).then(res => {
+        let msgs = [];
+        for await (const message of loadAllMessages(msg.channel)) {
+          msgs.push(message);
+         // console.log(message.content);
+        }
+        buildPricingArray(msgs, name, args).then(res => {
           let calc = convertCalcOutput(scripts.calculateOutput(convertToUsablePricingArray(res), false, -1));
-          msg.channel.send(calc);
+         // msg.channel.send(calc);
           msg.delete(DEL_TIMEOUT_SHORT);
         })
       }
@@ -116,7 +123,7 @@ bot.on('message', msg => {
         if (name.toUpperCase() !== 'BEANKONDUCTA') {
           delMsg(msg, `Invalid Message Format. Please Read the Server Description for Commands.`)
         } else {
-          if(!msg.content.startsWith('@here')) {
+          if (!msg.content.startsWith('@here')) {
             delMsg(msg, `[Type @here to bypass bot deletion]`)
           }
         }
@@ -274,7 +281,7 @@ validNumber = (num) => {
  * [sun: 0, mon: 1, tues: 2, wed: 3, etc]
  */
 toTimezone = (timestamp, timezone) => {
-  let days = ['Sunday', 'monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  let days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   let str;
   switch (timezone.toLowerCase()) {
     case 'm': // mountain
@@ -295,61 +302,65 @@ toTimezone = (timestamp, timezone) => {
   }
   if (!str) return;
   let split = str.split(' ');
+  console.log(split);
   let time = +split[1] >= 12 ? 'pm' : 'am';
   let day = days.indexOf(split[0]);
   return { day, time };
 }
 
 // this is working on test server but not real one
-buildPricingArray = async (msg, name, args) => {
+buildPricingArray = async (msgs, name, args) => { // this don't need to be a promise but it is.
   let startDate = moment().clone().weekday(0).valueOf();
   let endDate = moment().clone().weekday(6).valueOf();
   let pricingArray = [];
   let timezone = args.length < 1 ? 'm' : args[0];
   // console.log(endDate);
   // console.log(startDate);
-  let msgs = await msg.channel.fetchMessages({ limit: 100 }).then(res => {
-    let messages = res.filter(m => m.content.includes(name.toUpperCase()));
-    console.log(res.size);
-    for (let m of messages) {
-      // console.log(m[1].createdTimestamp);
-      if (m[1].content.includes('buying') && !m[1].content.includes('average')) {
-        if (+m[1].createdTimestamp <= +endDate && m[1].createdTimestamp >= +startDate) {
-          let split = m[1].content.split('`');
-          let price = split[1].split(' ')[0];
-          pricingArray.push({ ...toTimezone(m.createdTimestamp, timezone), price });
-        }
-      }
-      if (m[1].content.includes('selling') && !m[1].content.includes('average')) {
-        if (+m[1].createdTimestamp <= +endDate && m[1].createdTimestamp >= +startDate) {
-          let split = m[1].content.split('`');
-          let price = split[1].split(' ')[0];
-          pricingArray.push({ day: 'selling', price });
-        }
+  let messages = msgs.filter(m => m.content.includes(name.toUpperCase()));
+ // console.log(msgs.size);
+  for await(let m of messages) {
+  //  console.log(m.createdTimestamp);
+    // console.log(m[1].createdTimestamp);
+    if (m.content.includes('buying') && !m.content.includes('average')) {
+      if (+m.createdTimestamp <= +endDate && m.createdTimestamp >= +startDate) {
+        let split = m.content.split('`');
+       // console.log(split);
+        let price = split[1].split(' ')[0];
+        pricingArray.push({ ...toTimezone(m.createdTimestamp, timezone), price });
       }
     }
-  });
+    if (m.content.includes('selling') && !m.content.includes('average')) {
+      if (+m.createdTimestamp <= +endDate && m.createdTimestamp >= +startDate) {
+        let split = m.content.split('`');
+        let price = split[1].split(' ')[0];
+        pricingArray.push({ day: 'selling', price });
+      }
+    }
+  }
   return pricingArray;
 }
 
-recursiveMessageFetch = async (msg, total, lastId, current, messageList) => {
-  if(!messageList) messageList = [];
-  let limit = 25;
-  let msgs = await msg.channel.fetchMessages({ limit }).then(res => { // need to incorporate the startAt / or whatever its called here (using lastId)
-    messageList = messageList.concat(res); // should merge the arrays?
-    lastId = res[res.size-1].id; // dunno if this is correct. used res.size incase res is smaller than limit
-    current += res.size;
-    if(current < total) {
-      recursiveMessageFetch(msg, total, lastId, current, messageList); // go again!
-    } else {
-      console.log(messageList.size); // test
-      return messageList; // we've reached our desired size, return;
-    }
-  });
+async function* messagesIterator(channel) {
+  let before = null
+  let done = false
+  while (!done) {
+    const messages = await channel.fetchMessages({ limit: 100, before })
+    if (messages.size > 0) {
+      before = messages.lastKey()
+      yield messages
+    } else done = true
+  }
+}
+
+async function* loadAllMessages(channel) {
+  for await (const messages of messagesIterator(channel)) {
+    for (const message of messages.values()) yield message
+  }
 }
 
 // this works! might run into issues with arrays with duplicates tho
 convertToUsablePricingArray = (arr) => {
+  //console.log(arr);
   let usableArray = arr.sort((a, b) => a.day - b.day); // basic sort by day
   let newArray = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   for (let item of usableArray) {
@@ -366,5 +377,5 @@ convertToUsablePricingArray = (arr) => {
 }
 
 convertCalcOutput = (output) => {
-  console.log(output);
+ // console.log(output);
 }
