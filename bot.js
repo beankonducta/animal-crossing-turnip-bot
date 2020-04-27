@@ -299,8 +299,8 @@ toTimezone = (timestamp, timezone) => {
 }
 
 buildPricingArray = async (msgs, name, args) => { // this don't need to be a promise but it is.
-  let startDate = moment().clone().weekday(0).valueOf();
-  let endDate = moment().clone().weekday(6).valueOf();
+  let startDate = moment().clone().weekday(0).valueOf(); // i think these are incorrect!
+  let endDate = moment().clone().weekday(6).valueOf(); // wonder if these start on monday?
   let pricingArray = [];
   let timezone = args.length < 1 ? 'm' : args[0];
   let messages = msgs.filter(m => m.content.includes(name.toUpperCase()));
