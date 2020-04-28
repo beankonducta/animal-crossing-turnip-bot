@@ -294,7 +294,7 @@ toTimezone = (timestamp, timezone) => {
   if (!str) return;
   let split = str.split(' ');
   let time = +split[1] >= 12 ? 'pm' : 'am';
-  let day = days.indexOf(split[0]);
+  let day = days.indexOf(split[0]); 
   return { day, time };
 }
 
