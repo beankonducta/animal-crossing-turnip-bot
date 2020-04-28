@@ -10,18 +10,21 @@ const scripts = require('./calc/scripts');
 const DEL_TIMEOUT = 12000;
 const DEL_TIMEOUT_SHORT = 1000;
 const STONKS_COOLDOWN = 1000000;
-const CHANNEL_NAME = "turnip-prices";
+const CHANNEL_NAME = 'turnip-prices';
 
 var stonksTimer = 0;
+
+var channelName;
 
 bot.login(TOKEN);
 
 bot.on('ready', async () => {
   console.info(`Logged in as ${bot.user.tag}!`);
+  processArgs(process.argv);
 });
 
 bot.on('message', async msg => {
-  if (msg.channel.name !== CHANNEL_NAME) return;
+  if (msg.channel.name !== channelName) return;
   if (!msg.content) return;
   if (msg.author !== bot.user) {
     let name = msg.member.displayName;
@@ -111,6 +114,9 @@ bot.on('message', async msg => {
         })
         break;
       }
+      case 'test': {
+        msg.channel.send('successfully using test channel.');
+      }
       default: {
         if (name.toUpperCase() !== 'BEANKONDUCTA') {
           delMsg(msg, `Invalid Message Format. Please Read the Server Description for Commands.`)
@@ -123,6 +129,16 @@ bot.on('message', async msg => {
     }
   }
 });
+
+processArgs = (args) => {
+  if(args) {
+    if(args.length >= 3) {
+      channelName = args[2];
+    } else {
+      channelName = CHANNEL_NAME;
+    }
+  }
+}
 
 // [b] [##] [timezone]
 processBuy = (msg, cmd, args, min, max, name) => {
