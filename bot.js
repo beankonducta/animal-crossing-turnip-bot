@@ -16,6 +16,21 @@ var stonksTimer = 0;
 
 var channelName;
 
+/**
+ * TODOS:
+ * 
+ * - Consolidate avg, best and worst methods to single method.
+ * - Add additional args to avg, best and worst methods [week, month, year ?]
+ * - Refactor avg, best and worst method to use the recursive message crawler.
+ * - Write method tests
+ * - Split out utility methods to another file
+ * - General cleanup
+ * 
+ * 
+ * 
+ * gettin there!!
+ */
+
 bot.login(TOKEN);
 
 bot.on('ready', async () => {
@@ -109,7 +124,11 @@ bot.on('message', async msg => {
           let calc = convertCalcOutput(scripts.calculateOutput(priceArray, false, -1));
           let permaLink = scripts.generatePermalink(buy, sell, false, -1);
           msg.channel.send(permaLink).then(res => {
-            msg.delete(DEL_TIMEOUT_SHORT);
+            if (calc)
+              msg.channel.send(name.toUpperCase() + "'s projection: `MAX " + calc.max + "`  `MIN " + calc.min+"`").then(rez => {
+                msg.delete(DEL_TIMEOUT_SHORT);
+              })
+            else msg.delete(DEL_TIMEOUT_SHORT);
           });
         })
         break;
@@ -131,8 +150,8 @@ bot.on('message', async msg => {
 });
 
 processArgs = (args) => {
-  if(args) {
-    if(args.length >= 3) {
+  if (args) {
+    if (args.length >= 3) {
       channelName = args[2];
     } else {
       channelName = CHANNEL_NAME;
@@ -310,7 +329,7 @@ toTimezone = (timestamp, timezone) => {
   if (!str) return;
   let split = str.split(' ');
   let time = +split[1] >= 12 ? 'pm' : 'am';
-  let day = days.indexOf(split[0]); 
+  let day = days.indexOf(split[0]);
   return { day, time };
 }
 
@@ -370,22 +389,19 @@ convertToUsablePricingArray = (arr) => {
       newArray[item.day + dayMod] = item.price;
     }
   }
-  console.log(newArray);
   return newArray;
 }
 
-// this just formats some console logs.. fer now
+// finds the best and worst price given the array of possibilities. note: currently just grabs the first set because I think they're all the same?
 convertCalcOutput = (output) => {
-  if(output) {
-    if(output.length >= 1) {
-      for(let o of output) {
-        if(o.prices) {
-          console.log('prices: ');
-          for(let p of o.prices) {
-            console.log(p);
-          }
+  if (output) {
+    if (output.length >= 1) {
+      for (let o of output) {
+        if (o.weekMax) {
+          return { max: o.weekMax, min: o.weekGuaranteedMinimum }
         }
       }
     }
+    return null;
   }
 }

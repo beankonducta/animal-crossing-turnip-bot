@@ -6,7 +6,6 @@ const isEmpty = function (arr) {
 }
 
 const calculateOutput = function (data, first_buy, previous_pattern) {
-  console.log(data);
   if (isEmpty(data)) {
     console.log('empty data.')
     return;
