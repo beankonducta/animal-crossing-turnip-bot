@@ -18,7 +18,7 @@ var dgWords = ['deathgrips', 'death grips', 'grips', 'death'];
 bot.login(TOKEN);
 
 bot.on('ready', async () => {
-    console.log('ready');
+    console.log('ready again');
 });
 
 bot.on('message', async msg => {
