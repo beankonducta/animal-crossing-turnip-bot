@@ -13,7 +13,7 @@ const TIME_ALLOWED = 7500000;
 
 var dgTimer = 0;
 
-var dgWords = ['deathgrips', 'death grips', 'grips', 'death', 'thgr', 'th gr', 'd34thgr1ps', 'andy morin', 'zach hill', 'mc ride', 'spirg htaed', 'spirghtaed', 'захваты смерти', 'القبضات القاتلة'];
+var dgWords = ['deathgrips', 'death grips', 'grips', 'death', 'thgr', 'th gr', 'd34thgr1ps', 'andy morin', 'zach hill', 'mc ride', 'spirg htaed', 'spirghtaed', 'захваты смерти', 'القبضات القاتلة', 'մահվան բռնակներ', 'ölüm tutur'];
 
 bot.login(TOKEN);
 
