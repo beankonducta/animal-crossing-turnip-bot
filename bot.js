@@ -24,6 +24,8 @@ bot.on('ready', async () => {
 bot.on('message', async msg => {
     // if (msg.channel.name !== channelName) return; // locks bot to specific channel.
     if (!msg.content) return;
+    console.log(msg.author);
+    // if(msg.author.id)
     if (msg.author !== bot.user) {
         for (let word of dgWords) {
             if (msg.content.toLowerCase().includes(word.toLowerCase())) {
