@@ -9,11 +9,15 @@ const scripts = require('./calc/scripts');
 
 const DEL_TIMEOUT = 7500;
 
-const TIME_ALLOWED = 7500000;
+const TIME_ALLOWED = 7500000000;
 
 var dgTimer = 0;
 
-var dgWords = ['deathgrips', 'death grips', 'grips', 'death', 'thgr', 'th gr', 'd34thgr1ps', 'andy morin', 'zach hill', 'mc ride', 'spirg htaed', 'spirghtaed', 'захваты смерти', 'القبضات القاتلة', 'մահվան բռնակներ', 'ölüm tutur'];
+var gecTimer = 0;
+
+var dgWords = ['dg', 'deathgrips', 'death grips', 'grips', 'death', 'thgr', 'th gr', 'd34thgr1ps', 'andy morin', 'zach hill', 'mc ride', 'spirg htaed', 'spirghtaed', 'захваты смерти', 'القبضات القاتلة', 'մահվան բռնակներ', 'ölüm tutur'];
+
+var gecsWords = ['100 gecs', 'one hundred gecs', '100gecs', 'onehundredgecs', '100 geks', '100geks', 'onehundredgeks', 'one hundred geks', 'gecs', 'geks', 'gec'];
 
 bot.login(TOKEN);
 
@@ -24,8 +28,7 @@ bot.on('ready', async () => {
 bot.on('message', async msg => {
     // if (msg.channel.name !== channelName) return; // locks bot to specific channel.
     if (!msg.content) return;
-    console.log(msg.author);
-    // if(msg.author.id)
+    // }
     if (msg.author !== bot.user) {
         for (let word of dgWords) {
             if (msg.content.toLowerCase().includes(word.toLowerCase())) {
@@ -39,10 +42,23 @@ bot.on('message', async msg => {
                 return;
             }
         }
+        for (let word of gecsWords) {
+            if (msg.content.toLowerCase().includes(word.toLowerCase())) {
+                let time = msg.createdTimestamp;
+                if (+time < +gecTimer) {
+                    let gecOffset = (+gecTimer - +time) / 1000;
+                    delMsg(msg, `Can't type anything about 100 gecs for another ${Math.round(gecOffset)} seconds!`)
+                } else {
+                    gecTimer = time + TIME_ALLOWED;
+                }
+                return;
+            }
+        }
     }
 });
 
 delMsg = (msg, err) => {
+    msg.author.send('idk if u talkin about gecs or death grips but cmon man cut it out!!!!');
     msg.reply(err).then(res => {
         res.delete(DEL_TIMEOUT - 100); // deletes the bots response
         msg.delete(DEL_TIMEOUT); // deletes the original message
