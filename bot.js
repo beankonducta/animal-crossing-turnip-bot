@@ -15,7 +15,7 @@ var dgTimer = 0;
 
 var gecTimer = 0;
 
-var dgWords = ['dg', 'deathgrips', 'death grips', 'grips', 'death', 'thgr', 'th gr', 'd34thgr1ps', 'andy morin', 'zach hill', 'mc ride', 'spirg htaed', 'spirghtaed', 'захваты смерти', 'القبضات القاتلة', 'մահվան բռնակներ', 'ölüm tutur'];
+var dgWords = ['deathgrips', 'death grips', 'thgr', 'th gr', 'd34thgr1ps', 'andy morin', 'zach hill', 'mc ride', 'spirg htaed', 'spirghtaed', 'захваты смерти', 'القبضات القاتلة', 'մահվան բռնակներ', 'ölüm tutur'];
 
 var gecsWords = ['100 gecs', 'one hundred gecs', '100gecs', 'onehundredgecs', '100 geks', '100geks', 'onehundredgeks', 'one hundred geks', 'gecs', 'geks', 'gec'];
 
