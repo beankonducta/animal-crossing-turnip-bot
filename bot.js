@@ -25,6 +25,28 @@ bot.on('ready', async () => {
     console.log('ready again');
 });
 
+bot.on('messageUpdate', (oldMessage, newMessage) => {
+    console.log(newMessage.content);
+    if (!newMessage.content) return;
+    // }
+    if (newMessage.author !== bot.user) {
+        for (let word of dgWords) {
+            if (newMessage.content.toLowerCase().includes(word.toLowerCase())) {
+                console.log('dgword');
+                delMsg(newMessage, `this fuckin freak tried to bypass me by editing his message! freak.`)
+                return;
+            }
+        }
+        for (let word of gecsWords) {
+            if (newMessage.content.toLowerCase().includes(word.toLowerCase())) {
+                console.log('gecsword');
+                delMsg(newMessage, `this fuckin freak tried to bypass me by editing his message! freak.`)
+                return;
+            }
+        }
+    }
+});
+
 bot.on('message', async msg => {
     // if (msg.channel.name !== channelName) return; // locks bot to specific channel.
     if (!msg.content) return;
