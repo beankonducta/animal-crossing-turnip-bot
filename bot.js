@@ -19,6 +19,8 @@ var dgWords = ['deathgrips', 'death grips', 'thgr', 'th gr', 'd34thgr1ps', 'andy
 
 var gecsWords = ['100 gecs', 'one hundred gecs', '100gecs', 'onehundredgecs', '100 geks', '100geks', 'onehundredgeks', 'one hundred geks', 'gecs', 'geks', 'gec'];
 
+var mergeWords = dgWords.concat(gecsWords);
+
 bot.login(TOKEN);
 
 bot.on('ready', async () => {
@@ -26,20 +28,10 @@ bot.on('ready', async () => {
 });
 
 bot.on('messageUpdate', (oldMessage, newMessage) => {
-    console.log(newMessage.content);
     if (!newMessage.content) return;
-    // }
     if (newMessage.author !== bot.user) {
-        for (let word of dgWords) {
+        for (let word of mergeWords) {
             if (newMessage.content.toLowerCase().includes(word.toLowerCase())) {
-                console.log('dgword');
-                delMsg(newMessage, `this fuckin freak tried to bypass me by editing his message! freak.`)
-                return;
-            }
-        }
-        for (let word of gecsWords) {
-            if (newMessage.content.toLowerCase().includes(word.toLowerCase())) {
-                console.log('gecsword');
                 delMsg(newMessage, `this fuckin freak tried to bypass me by editing his message! freak.`)
                 return;
             }
