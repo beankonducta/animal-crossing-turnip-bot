@@ -19,6 +19,8 @@ var dgWords = ['deathgrips', 'death grips', 'thgr', 'th gr', 'd34thgr1ps', 'andy
 
 var gecsWords = ['100 gecs', 'one hundred gecs', '100gecs', 'onehundredgecs', '100 geks', '100geks', 'onehundredgeks', 'one hundred geks', 'gecs', 'geks', 'gec'];
 
+var oneOne = '1v1 me'
+
 var mergeWords = dgWords.concat(gecsWords);
 
 bot.login(TOKEN);
@@ -67,6 +69,9 @@ bot.on('message', async msg => {
                 }
                 return;
             }
+        }
+        if (msg.content.toLowerCase().includes(oneOne.toLowerCase())) {
+            msg.reply(`yeah i'll 1v1 you fuckin freak`)
         }
     }
 });
